@@ -357,6 +357,32 @@ if test "$update_boot" = "yes"; then
 fi
 
 
+prepare_cryptodisk () {
+  uuid="$1"
+
+  if [ "x$GRUB_CRYPTODISK_PASSWORD" != x ]; then
+    echo "cryptomount -u $uuid -p \"$GRUB_CRYPTODISK_PASSWORD\""
+    return
+  fi
+
+  if [ "x$GRUB_TPM2_SEALED_KEY" = x ]; then
+    echo "cryptomount -u $uuid"
+    return
+  fi
+
+  tpm_pcr_bank="${GRUB_TPM2_PCR_BANK:-sha256}"
+  tpm_pcr_list="${GRUB_TPM2_PCR_LIST:-0,2,4,7,9}"
+  tpm_sealed_key="${GRUB_TPM2_SEALED_KEY}"
+
+  cat <<EOF
+tpm2_key_protector_init -b $tpm_pcr_bank -p $tpm_pcr_list -k \$prefix/$tpm_sealed_key
+if ! cryptomount -u $uuid -k tpm2; then
+    cryptomount -u $uuid
+fi
+EOF
+}
+
+
 make_grubcfg () {
 
 grub_cfg_dirname=`dirname $grub_cfg`
@@ -379,7 +405,7 @@ fi
 
 if [ x$GRUB_ENABLE_CRYPTODISK = xy ]; then
   for uuid in `"${grub_probe}" --target=cryptodisk_uuid --device-map= "${grub_cfg_dirname}"`; do
-    echo "cryptomount -u $uuid"
+    prepare_cryptodisk "$uuid"
   done
 fi
 
