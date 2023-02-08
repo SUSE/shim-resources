@@ -374,15 +374,27 @@ prepare_cryptodisk () {
   tpm_pcr_list="${GRUB_TPM2_PCR_LIST:-0,2,4,7,9}"
   tpm_sealed_key="${GRUB_TPM2_SEALED_KEY}"
 
+  tpm_mode=""
+  tpm_extra_options=""
+  if [ -n "$GRUB_TPM_AUTHORIZED_POLICY" ]; then
+    tpm_mode="-m authpol"
+    tpm_extra_options="-P \$prefix/$GRUB_TPM_PUBLIC_KEY -S \$prefix/$GRUB_TPM_SIGNATURE"
+  fi
+
   declare -g TPM_PCR_SNAPSHOT_TAKEN
 
   if [ -z "$TPM_PCR_SNAPSHOT_TAKEN" ]; then
     TPM_PCR_SNAPSHOT_TAKEN=1
-    echo "tpm_record_pcrs 0-9"
+
+    # Check if tpm_record_pcrs is available and set the command to
+    # grub.cfg.
+    if grep -q "tpm_record_pcrs" ${datadir}/grub2/${arch}-efi/command.lst ; then
+      echo "tpm_record_pcrs 0-9"
+    fi
   fi
 
   cat <<EOF
-tpm2_key_protector_init -b $tpm_pcr_bank -p $tpm_pcr_list -k \$prefix/$tpm_sealed_key
+tpm2_key_protector_init $tpm_mode -b $tpm_pcr_bank -p $tpm_pcr_list -k \$prefix/$tpm_sealed_key $tpm_extra_options
 if ! cryptomount -u $uuid -k tpm2; then
     cryptomount -u $uuid
 fi
