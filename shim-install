@@ -395,7 +395,7 @@ prepare_cryptodisk () {
 
   cat <<EOF
 tpm2_key_protector_init $tpm_mode -b $tpm_pcr_bank -p $tpm_pcr_list -k \$prefix/$tpm_sealed_key $tpm_extra_options
-if ! cryptomount -u $uuid -k tpm2; then
+if ! cryptomount -u $uuid --protector tpm2; then
     cryptomount -u $uuid
 fi
 EOF
