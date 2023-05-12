@@ -376,16 +376,7 @@ prepare_cryptodisk () {
     return
   fi
 
-  tpm_pcr_bank="${GRUB_TPM2_PCR_BANK:-sha256}"
-  tpm_pcr_list="${GRUB_TPM2_PCR_LIST:-0,2,4,7,9}"
   tpm_sealed_key="${GRUB_TPM2_SEALED_KEY}"
-
-  tpm_mode=""
-  tpm_extra_options=""
-  if [ -n "$GRUB_TPM_AUTHORIZED_POLICY" ]; then
-    tpm_mode="-m authpol"
-    tpm_extra_options="-P \$prefix/$GRUB_TPM_PUBLIC_KEY -S \$prefix/$GRUB_TPM_SIGNATURE"
-  fi
 
   declare -g TPM_PCR_SNAPSHOT_TAKEN
 
@@ -400,7 +391,7 @@ prepare_cryptodisk () {
   fi
 
   cat <<EOF
-tpm2_key_protector_init $tpm_mode -b $tpm_pcr_bank -p $tpm_pcr_list -k \$prefix/$tpm_sealed_key $tpm_extra_options
+tpm2_key_protector_init -T \$prefix/$tpm_sealed_key
 if ! cryptomount -u $uuid --protector tpm2; then
     cryptomount -u $uuid
 fi
