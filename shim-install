@@ -423,7 +423,7 @@ if [ x$GRUB_ENABLE_CRYPTODISK = xy ]; then
   for uuid in `"${grub_probe}" --target=cryptodisk_uuid --device-map= "${grub_cfg_dirname}"`; do
     prepare_cryptodisk "$uuid"
   done
-  cfg_fs_hint="--hint-efi="`"$grub_probe" --target=efi_hints "$grub_cfg_dirname"`
+  cfg_fs_hint="`"${grub_probe}" --target=hints_string --device-map= "${grub_cfg_dirname}"`"
 fi
 
 cat <<EOF
