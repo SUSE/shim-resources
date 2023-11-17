@@ -378,18 +378,6 @@ prepare_cryptodisk () {
 
   tpm_sealed_key="${GRUB_TPM2_SEALED_KEY}"
 
-  declare -g TPM_PCR_SNAPSHOT_TAKEN
-
-  if [ -z "$TPM_PCR_SNAPSHOT_TAKEN" ]; then
-    TPM_PCR_SNAPSHOT_TAKEN=1
-
-    # Check if tpm_record_pcrs is available and set the command to
-    # grub.cfg.
-    if grep -q "tpm_record_pcrs" ${datadir}/grub2/${arch}-efi/command.lst ; then
-      echo "tpm_record_pcrs 0-9"
-    fi
-  fi
-
   tpm_srk_alg="${GRUB_TPM2_SRK_ALG}"
 
   if [ -z "$tpm_srk_alg" ]; then
