@@ -447,7 +447,9 @@ if [ x$GRUB_ENABLE_CRYPTODISK = xy ]; then
   done
 fi
 
-hints="`"${grub_probe}" --target=hints_string "${grub_cfg_dirname}" 2> /dev/null`"
+for hint in `"${grub_probe}" --target=efi_hints "${grub_cfg_dirname}" 2> /dev/null`; do
+  hints="${hints:+$hints }--hint='$hint'"
+done
 
 if [ "x$hints" != x ]; then
   echo "if [ x\$feature_platform_search_hint = xy ]; then"
