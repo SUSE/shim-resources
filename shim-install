@@ -444,6 +444,7 @@ fi
 if [ x$GRUB_ENABLE_CRYPTODISK = xy ]; then
   for uuid in `"${grub_probe}" --target=cryptodisk_uuid --device-map= "${grub_cfg_dirname}"`; do
     prepare_cryptodisk "$uuid"
+    IS_CRYPTO_ROOT=y
   done
 fi
 
@@ -452,13 +453,31 @@ for hint in `"${grub_probe}" --target=efi_hints "${grub_cfg_dirname}" 2> /dev/nu
 done
 
 if [ "x$hints" != x ]; then
-  echo "if [ x\$feature_platform_search_hint = xy ]; then"
-  echo "  search --no-floppy --fs-uuid --set=root ${hints} ${cfg_fs_uuid}"
-  echo "else"
-  echo "  search --no-floppy --fs-uuid --set=root ${cfg_fs_uuid}"
-  echo "fi"
+  if [ "x$IS_CRYPTO_ROOT" = xy ]; then
+    echo "if [ x\$feature_search_cryptodisk_only = xy ]; then"
+    echo "  search --no-floppy --cryptodisk-only --fs-uuid --set=root ${hints} ${cfg_fs_uuid}"
+    echo "elif [ x\$feature_platform_search_hint = xy ]; then"
+    echo "  search --no-floppy --fs-uuid --set=root ${hints} ${cfg_fs_uuid}"
+    echo "else"
+    echo "  search --no-floppy --fs-uuid --set=root ${cfg_fs_uuid}"
+    echo "fi"
+  else
+    echo "if [ x\$feature_platform_search_hint = xy ]; then"
+    echo "  search --no-floppy --fs-uuid --set=root ${hints} ${cfg_fs_uuid}"
+    echo "else"
+    echo "  search --no-floppy --fs-uuid --set=root ${cfg_fs_uuid}"
+    echo "fi"
+  fi
 else
-  echo "search --no-floppy --fs-uuid --set=root ${cfg_fs_uuid}"
+  if [ "x$IS_CRYPTO_ROOT" = xy ]; then
+    echo "if [ x\$feature_search_cryptodisk_only = xy ]; then"
+      echo "search --no-floppy --cryptodisk-only --fs-uuid --set=root ${cfg_fs_uuid}"
+    echo "else"
+      echo "search --no-floppy --fs-uuid --set=root ${cfg_fs_uuid}"
+    echo "fi"
+  else
+    echo "search --no-floppy --fs-uuid --set=root ${cfg_fs_uuid}"
+  fi
 fi
 
 cat <<EOF
