@@ -401,7 +401,7 @@ prepare_cryptodisk () {
 
     # Check if tpm_record_pcrs is available and set the command to
     # grub.cfg.
-    if grep -q "tpm_record_pcrs" ${datadir}/grub2/${arch}-efi/command.lst ; then
+    if grep -q "tpm_record_pcrs" ${datadir}/grub2/${grub_install_target}/command.lst ; then
       echo "tpm_record_pcrs 0-9"
     fi
   fi
