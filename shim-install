@@ -393,6 +393,7 @@ prepare_cryptodisk () {
   fi
 
   tpm_sealed_key="${GRUB_TPM2_SEALED_KEY}"
+  tpm_cap_pcr="${GRUB_TPM2_CAP_PCR:-9}"
 
   declare -g TPM_PCR_SNAPSHOT_TAKEN
 
@@ -413,7 +414,11 @@ prepare_cryptodisk () {
   fi
 
   cat <<EOF
-tpm2_key_protector_init -a $tpm_srk_alg -T \$prefix/$tpm_sealed_key
+if [ x\$feature_tpm2_cap_pcrs = xy ]; then
+  tpm2_key_protector_init -a $tpm_srk_alg -T \$prefix/$tpm_sealed_key -c $tpm_cap_pcr
+else
+  tpm2_key_protector_init -a $tpm_srk_alg -T \$prefix/$tpm_sealed_key
+fi
 if ! cryptomount -u $uuid --protector tpm2; then
     cryptomount -u $uuid
 fi
