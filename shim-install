@@ -381,14 +381,21 @@ fi
 
 prepare_cryptodisk () {
   uuid="$1"
+  local cryptomount_base="cryptomount -u $uuid"
+  if [ "x$GRUB_CRYPTO_HWACCEL" = "xtrue" ]; then
+      echo "if [ x\$feature_gcry_hw_accel = xy ]; then"
+      echo "  set cryptomount_hw_accel_args=-A"
+      echo "fi"
+      cryptomount_base="$cryptomount_base \$cryptomount_hw_accel_args"
+  fi
 
   if [ "x$GRUB_CRYPTODISK_PASSWORD" != x ]; then
-    echo "cryptomount -u $uuid -p \"$GRUB_CRYPTODISK_PASSWORD\""
+    echo "$cryptomount_base -p \"$GRUB_CRYPTODISK_PASSWORD\""
     return
   fi
 
   if [ "x$GRUB_TPM2_SEALED_KEY" = x ]; then
-    echo "cryptomount -u $uuid"
+    echo "$cryptomount_base"
     return
   fi
 
@@ -419,8 +426,8 @@ if [ x\$feature_tpm2_cap_pcrs = xy ]; then
 else
   tpm2_key_protector_init -a $tpm_srk_alg -T \$prefix/$tpm_sealed_key
 fi
-if ! cryptomount -u $uuid --protector tpm2; then
-    cryptomount -u $uuid
+if ! $cryptomount_base --protector tpm2; then
+    $cryptomount_base
 fi
 EOF
 }
